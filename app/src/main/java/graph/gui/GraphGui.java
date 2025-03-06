@@ -7,7 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class GraphGui {
-        public GraphGui() {
+    public GraphGui() {
         JFrame frame = new JFrame();
         JPanel mainPanel = new JPanel();
 
