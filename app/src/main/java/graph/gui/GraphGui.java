@@ -83,8 +83,17 @@ public class GraphGui {
         nodeInformation.setLayout(new BoxLayout(nodeInformation, 0));
         JTextField nodeName = new JTextField();
         nodeName.setPreferredSize(new Dimension(100, 200));
-        JPanel edgeInformationGrid = new JPanel(new GridLayout(0, 1));
+        
+        nodes.add(nodeName);
+        nodeInformation.add(nodeName);
+        this.addEdge(nodeInformation);
+        graphPageNodeContainer.add(nodeInformation);
+    }
+
+    private void addEdge(JPanel nodeInformation) {
+        // edgeInformationBorder exists to prevent GridLayout from evenly spacing added edges in panel
         JPanel edgeInformationBorder = new JPanel(new BorderLayout());
+        JPanel edgeInformationGrid = new JPanel(new GridLayout(0, 1));
         edgeInformationBorder.add(edgeInformationGrid, BorderLayout.NORTH);
         JScrollPane edgeInformationWrapper = new JScrollPane(edgeInformationBorder);
         edgeInformationWrapper.setPreferredSize(new Dimension(400, 200));
@@ -128,13 +137,11 @@ public class GraphGui {
                 nodeInformation.repaint();
             }
         });
-        nodes.add(nodeName);
+
         addRemoveEdgeContainer.add(removeEdgeBtn);
         addRemoveEdgeContainer.add(addEdgeBtn);
-        nodeInformation.add(nodeName);
         nodeInformation.add(edgeInformationWrapper);
         nodeInformation.add(addRemoveEdgeContainer);
-        graphPageNodeContainer.add(nodeInformation);
     }
 
     private class ButtonAction extends AbstractAction {
