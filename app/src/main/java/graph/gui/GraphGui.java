@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,16 +19,14 @@ public class GraphGui {
     private JFrame frame = new JFrame();
     private JPanel mainPanel = new JPanel(new CardLayout()), homePageContainer = new JPanel(), graphPageContainer = new JPanel();
     private JPanel graphPageNodeContainer = new JPanel();
-    private JScrollPane graphPageNodeContainerWrapper = new JScrollPane(graphPageNodeContainer);
-    private JButton goToStringGraphBtn, goHomeBtn, addNodeBtn, removeNodeBtn;
+    private JScrollPane graphPageNodeContainerWrapper = new JScrollPane(graphPageNodeContainer), graphPageContainerScroll = new JScrollPane(graphPageContainer);
+    private JButton goToStringGraphBtn, goHomeBtn, addNodeBtn, removeNodeBtn, resetGraphBtn, finishGraphBtn;
     // Index of nodes corresponds to index of edges
     private ArrayList<JTextField> nodes;
-    private ArrayList<ArrayList<JTextField>> edgeConnections;
-    private ArrayList<ArrayList<JTextField>> edgeWeights;
+    private ArrayList<ArrayList<JTextField>> edgeConnections; // edgeConnections[v] = adjacency list of node v which shows neighbour connection
+    private ArrayList<ArrayList<JTextField>> edgeWeights; // edgeWeights[v] = adjacency list of node v which shows weight to neighbour
 
     public GraphGui() {
-        frame.getContentPane().setPreferredSize(new Dimension(700,600));
-
         frame.add(mainPanel, BorderLayout.NORTH);
 
         createHomePage();
@@ -43,7 +42,7 @@ public class GraphGui {
 
     private void setUpCards() {
         mainPanel.add(homePageContainer, "HomePage");
-        mainPanel.add(graphPageContainer, "GraphPage");
+        mainPanel.add(graphPageContainerScroll, "GraphPage");
     }
 
     private void createHomePage() {
@@ -58,11 +57,13 @@ public class GraphGui {
     private void createGraphPage() {
         JPanel goHomeBtnWrapper = new JPanel(new BorderLayout());
         JPanel addRemoveNodeBtnWrapper = new JPanel(new GridLayout(1, 2));
+        JPanel resetGraphBtnWrapper = new JPanel(new BorderLayout());
+        JPanel finishGraphBtnWrapper = new JPanel(new BorderLayout());
         graphPageContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
         graphPageContainer.setLayout(new BoxLayout(graphPageContainer, BoxLayout.PAGE_AXIS));        
         goHomeBtn = new JButton(new ButtonAction("Go Home"));
-        addNodeBtn = new JButton(new ButtonAction("Add Node"));
-        removeNodeBtn = new JButton(new ButtonAction("Remove Node"));
+        graphPageMainButtonsFunctionality();
+        finishGraphBtn = new JButton(new ButtonAction("Finish Graph"));
         graphPageNodeContainer.setLayout(new GridLayout(0, 1));
         graphPageNodeContainerWrapper.setPreferredSize(new Dimension(700, 500));
         nodes = new ArrayList<>();
@@ -70,11 +71,54 @@ public class GraphGui {
         edgeWeights = new ArrayList<>();
 
         goHomeBtnWrapper.add(goHomeBtn);
+        resetGraphBtnWrapper.add(resetGraphBtn);
+        finishGraphBtnWrapper.add(finishGraphBtn);
         addRemoveNodeBtnWrapper.add(removeNodeBtn);
         addRemoveNodeBtnWrapper.add(addNodeBtn);
         graphPageContainer.add(goHomeBtnWrapper);
         graphPageContainer.add(addRemoveNodeBtnWrapper);
         graphPageContainer.add(graphPageNodeContainerWrapper);
+        graphPageContainer.add(resetGraphBtnWrapper);
+        // Rigid area for space between finishing graph / resetting graph
+        graphPageContainer.add(Box.createRigidArea(new Dimension(0,20)));
+        graphPageContainer.add(finishGraphBtnWrapper);
+    }
+
+    private void graphPageMainButtonsFunctionality() {
+        addNodeBtn = new JButton("Add Node");
+        addNodeBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addNode();
+                graphPageNodeContainerWrapper.validate();
+            }
+        });
+
+        removeNodeBtn = new JButton("Remove Node");
+        removeNodeBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (nodes.size() > 0) {
+                    nodes.removeLast();
+                    edgeConnections.removeLast();
+                    edgeWeights.removeLast();
+
+                    graphPageNodeContainer.remove(graphPageNodeContainer.getComponentCount() - 1);
+                    graphPageNodeContainer.revalidate();
+                    graphPageContainer.repaint();
+                }
+            }
+        });
+
+        resetGraphBtn = new JButton("Reset Graph");
+        resetGraphBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                nodes.clear();
+                edgeConnections.clear();
+                edgeWeights.clear();
+                graphPageNodeContainer.removeAll();
+                graphPageNodeContainer.revalidate();
+                graphPageContainer.repaint();
+            }
+        });
     }
 
     private void addNode() {
@@ -151,24 +195,14 @@ public class GraphGui {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            // Strictly for navigation buttons
             CardLayout layout = (CardLayout) mainPanel.getLayout();
             if (e.getSource() == goHomeBtn) {
                 layout.show(mainPanel, "HomePage");
             } else if (e.getSource() == goToStringGraphBtn) {
                 layout.show(mainPanel, "GraphPage");
-            } else if (e.getSource() == addNodeBtn) {
-                addNode();
-                graphPageNodeContainerWrapper.validate();
-            } else if (e.getSource() == removeNodeBtn) {
-                if (nodes.size() > 0) {
-                    nodes.removeLast();
-                    edgeConnections.removeLast();
-                    edgeWeights.removeLast();
-
-                    graphPageNodeContainer.remove(graphPageNodeContainer.getComponentCount() - 1);
-                    graphPageNodeContainer.revalidate();
-                    graphPageContainer.repaint();
-                }
+            } else if (e.getSource() == finishGraphBtn) {
+                // TODO!
             }
         }
     }
