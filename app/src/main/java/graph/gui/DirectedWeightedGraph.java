@@ -2,6 +2,7 @@ package graph.gui;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /* Assumptions:
@@ -14,26 +15,58 @@ abstract class DirectedWeightedGraph<T> {
     public ArrayList<ArrayList<Integer[]>> adjList = new ArrayList<ArrayList<Integer[]>>();
     public Integer vertexNum = 0;
 
-    protected DirectedWeightedGraph(ArrayList<T[]> edges, ArrayList<Integer> weights) {
+    // This is for fast setup e.g. will add nodes based on edge list
+    protected DirectedWeightedGraph(List<T[]> edges, List<Integer> weights) {
         // e.g edges = Arraylist[[1, 2]], weights = [10] for graph that connects '1' to '2' with edge of weight 10
         for (int i = 0; i < edges.size(); i++) {
-            addEdge(edges.get(i)[0], edges.get(i)[1], weights.get(i));
+            addEdgeFastSetup(edges.get(i)[0], edges.get(i)[1], weights.get(i));
+        }
+    }
+    
+    // For slow setup e.g. will only add nodes from nodes list then add edges
+    protected DirectedWeightedGraph(List<T> nodes, List<T[]> edges, List<Integer> weights) {
+        // e.g edges = Arraylist[[1, 2]], weights = [10] for graph that connects '1' to '2' with edge of weight 10
+        for (int i = 0; i < nodes.size(); i++) {
+            addNode(nodes.get(i));
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            addEdgeSlowSetup(edges.get(i)[0], edges.get(i)[1], weights.get(i));
         }
     }
 
     private void addNode(T node) {
         Integer id = vertexNum;
+        if (vertexDict.containsKey(node)) {
+            throw new IllegalArgumentException(String.format("Duplicate node %s", node));
+        }
         vertexDict.put(node, id);
         vertexNum++;
         adjList.add(new ArrayList<Integer[]>());
     }
 
-    public void addEdge(T from, T to, Integer weight) {
+    public void addEdgeFastSetup(T from, T to, Integer weight) {
         if (!nodeExists(from)) {
             addNode(from);
         }
         if (!nodeExists(to)) {
             addNode(to);
+        }
+        if (edgeExists(from, to)) {
+            return;
+        }
+        Integer nodeFromId = vertexDict.get(from);
+        Integer nodeToId = vertexDict.get(to);
+        Integer[] newEdge = {nodeToId, weight};
+        ArrayList<Integer[]> fromEdges = adjList.get(nodeFromId);
+        fromEdges.add(newEdge);
+    }
+
+    private void addEdgeSlowSetup(T from, T to, Integer weight) {
+        if (!nodeExists(from)) {
+            throw new IllegalArgumentException("'from' node must exist");
+        }
+        if (!nodeExists(to)) {
+            throw new IllegalArgumentException("'to' node must exist");
         }
         if (edgeExists(from, to)) {
             return;

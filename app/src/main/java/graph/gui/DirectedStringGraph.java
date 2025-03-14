@@ -1,9 +1,9 @@
 package graph.gui;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class DirectedStringGraph extends DirectedWeightedGraph<String> {
-    public DirectedStringGraph(ArrayList<String[]> edges, ArrayList<Integer> weights) {
+    public DirectedStringGraph(List<String[]> edges, List<Integer> weights) {
         super(edges, weights);
     }
 }

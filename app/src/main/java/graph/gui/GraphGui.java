@@ -11,9 +11,19 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+
+import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.FRLayout;
+import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.algorithms.layout.StaticLayout;
+import edu.uci.ics.jung.graph.DirectedSparseGraph;
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
 
 public class GraphGui {
     private JFrame frame = new JFrame();
@@ -28,6 +38,8 @@ public class GraphGui {
 
     public GraphGui() {
         frame.add(mainPanel, BorderLayout.NORTH);
+        frame.setResizable(false);
+        frame.setSize(new Dimension(100, 100));
 
         createHomePage();
         createGraphPage();
@@ -60,7 +72,8 @@ public class GraphGui {
         JPanel resetGraphBtnWrapper = new JPanel(new BorderLayout());
         JPanel finishGraphBtnWrapper = new JPanel(new BorderLayout());
         graphPageContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-        graphPageContainer.setLayout(new BoxLayout(graphPageContainer, BoxLayout.PAGE_AXIS));        
+        graphPageContainer.setLayout(new BoxLayout(graphPageContainer, BoxLayout.Y_AXIS));
+        graphPageContainer.setPreferredSize(new Dimension(100, 600));
         goHomeBtn = new JButton(new ButtonAction("Go Home"));
         graphPageMainButtonsFunctionality();
         finishGraphBtn = new JButton(new ButtonAction("Finish Graph"));
@@ -82,6 +95,16 @@ public class GraphGui {
         // Rigid area for space between finishing graph / resetting graph
         graphPageContainer.add(Box.createRigidArea(new Dimension(0,20)));
         graphPageContainer.add(finishGraphBtnWrapper);
+
+        // TODO!
+        // Graph<String, Integer> g = new DirectedSparseGraph<>();
+        // g.addVertex("test1");
+        // g.addVertex("test2");
+        // g.addEdge(1, "test1", "test2");
+        // Layout<String, Integer> layout = new FRLayout<String, Integer>(g, new Dimension(500,500));
+        // VisualizationViewer<String, Integer> vv = new VisualizationViewer<String, Integer>(layout, new Dimension(500,500));
+        // GraphZoomScrollPane b = new GraphZoomScrollPane(vv);
+        // graphPageContainer.add(b);
     }
 
     private void graphPageMainButtonsFunctionality() {
@@ -100,7 +123,6 @@ public class GraphGui {
                     nodes.removeLast();
                     edgeConnections.removeLast();
                     edgeWeights.removeLast();
-
                     graphPageNodeContainer.remove(graphPageNodeContainer.getComponentCount() - 1);
                     graphPageNodeContainer.revalidate();
                     graphPageContainer.repaint();
@@ -123,18 +145,21 @@ public class GraphGui {
 
     private void addNode() {
         JPanel nodeInformation = new JPanel();
-        nodeInformation.setPreferredSize(new Dimension(650,200));
+        nodeInformation.setPreferredSize(new Dimension(650,100));
         nodeInformation.setLayout(new BoxLayout(nodeInformation, 0));
+        JPanel nodeNameContainer = new JPanel(new GridLayout(1, 2));
+        nodeNameContainer.setPreferredSize(new Dimension(100, 200));
+        nodeNameContainer.add(new JLabel(String.valueOf(nodes.size())));
         JTextField nodeName = new JTextField();
-        nodeName.setPreferredSize(new Dimension(100, 200));
-        
+        nodeNameContainer.add(nodeName);
+        nodeNameContainer.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         nodes.add(nodeName);
-        nodeInformation.add(nodeName);
-        this.addEdge(nodeInformation);
+        nodeInformation.add(nodeNameContainer);
+        this.addEdgeInformation(nodeInformation);
         graphPageNodeContainer.add(nodeInformation);
     }
 
-    private void addEdge(JPanel nodeInformation) {
+    private void addEdgeInformation(JPanel nodeInformation) {
         // edgeInformationBorder exists to prevent GridLayout from evenly spacing added edges in panel
         JPanel edgeInformationBorder = new JPanel(new BorderLayout());
         JPanel edgeInformationGrid = new JPanel(new GridLayout(0, 1));
@@ -155,11 +180,13 @@ public class GraphGui {
         addEdgeBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JPanel edgeContainer = new JPanel();
+                JLabel edgeNum = new JLabel(String.valueOf(currNodeEdges.size()));
                 JTextField edgeName = new JTextField(10);
                 JTextField edgeWeight = new JTextField("1", 10);
                 edgeName.setMaximumSize(new Dimension(10, 10));
                 currNodeEdges.add(edgeName);
                 currNodeWeights.add(edgeWeight);
+                edgeContainer.add(edgeNum);
                 edgeContainer.add(edgeName);
                 edgeContainer.add(edgeWeight);
                 edgeInformationGrid.add(edgeContainer);
@@ -195,7 +222,7 @@ public class GraphGui {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // Strictly for navigation buttons
+            // Strictly for navigation buttons / External state changes
             CardLayout layout = (CardLayout) mainPanel.getLayout();
             if (e.getSource() == goHomeBtn) {
                 layout.show(mainPanel, "HomePage");
