@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -16,10 +18,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
-import edu.uci.ics.jung.algorithms.layout.StaticLayout;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
@@ -31,10 +31,11 @@ public class GraphGui {
     private JPanel graphPageNodeContainer = new JPanel();
     private JScrollPane graphPageNodeContainerWrapper = new JScrollPane(graphPageNodeContainer), graphPageContainerScroll = new JScrollPane(graphPageContainer);
     private JButton goToStringGraphBtn, goHomeBtn, addNodeBtn, removeNodeBtn, resetGraphBtn, finishGraphBtn;
+    GraphZoomScrollPane graphVisualContainer;
     // Index of nodes corresponds to index of edges
-    private ArrayList<JTextField> nodes;
-    private ArrayList<ArrayList<JTextField>> edgeConnections; // edgeConnections[v] = adjacency list of node v which shows neighbour connection
-    private ArrayList<ArrayList<JTextField>> edgeWeights; // edgeWeights[v] = adjacency list of node v which shows weight to neighbour
+    private List<JTextField> nodes;
+    private List<List<JTextField>> edgeConnections; // edgeConnections[v] = adjacency list of node v which shows neighbour connection
+    private List<List<JTextField>> edgeWeights; // edgeWeights[v] = adjacency list of node v which shows weight to neighbour
 
     public GraphGui() {
         frame.add(mainPanel, BorderLayout.NORTH);
@@ -76,7 +77,6 @@ public class GraphGui {
         graphPageContainer.setPreferredSize(new Dimension(100, 600));
         goHomeBtn = new JButton(new ButtonAction("Go Home"));
         graphPageMainButtonsFunctionality();
-        finishGraphBtn = new JButton(new ButtonAction("Finish Graph"));
         graphPageNodeContainer.setLayout(new GridLayout(0, 1));
         graphPageNodeContainerWrapper.setPreferredSize(new Dimension(700, 500));
         nodes = new ArrayList<>();
@@ -96,16 +96,9 @@ public class GraphGui {
         graphPageContainer.add(Box.createRigidArea(new Dimension(0,20)));
         graphPageContainer.add(finishGraphBtnWrapper);
 
-        // TODO!
-        // Graph<String, Integer> g = new DirectedSparseGraph<>();
-        // g.addVertex("test1");
-        // g.addVertex("test2");
-        // g.addEdge(1, "test1", "test2");
-        // Layout<String, Integer> layout = new FRLayout<String, Integer>(g, new Dimension(500,500));
-        // VisualizationViewer<String, Integer> vv = new VisualizationViewer<String, Integer>(layout, new Dimension(500,500));
-        // GraphZoomScrollPane b = new GraphZoomScrollPane(vv);
-        // graphPageContainer.add(b);
+        addGraphVisualisation();
     }
+
 
     private void graphPageMainButtonsFunctionality() {
         addNodeBtn = new JButton("Add Node");
@@ -133,12 +126,22 @@ public class GraphGui {
         resetGraphBtn = new JButton("Reset Graph");
         resetGraphBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                graphVisualContainer.setVisible(false);
                 nodes.clear();
                 edgeConnections.clear();
                 edgeWeights.clear();
                 graphPageNodeContainer.removeAll();
                 graphPageNodeContainer.revalidate();
                 graphPageContainer.repaint();
+            }
+        });
+
+        finishGraphBtn = new JButton("Finish Graph");
+        finishGraphBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                java.util.List<String> nodeStrings = nodes.stream().map(node -> (node.getText())).collect(Collectors.toList());
+                // TODO!: Add convert to DirectedWeightedGraph -> JUNG graph
+                graphVisualContainer.setVisible(true);
             }
         });
     }
@@ -150,7 +153,7 @@ public class GraphGui {
         JPanel nodeNameContainer = new JPanel(new GridLayout(1, 2));
         nodeNameContainer.setPreferredSize(new Dimension(100, 200));
         nodeNameContainer.add(new JLabel(String.valueOf(nodes.size())));
-        JTextField nodeName = new JTextField();
+        JTextField nodeName = new JTextField(String.valueOf(nodes.size()));
         nodeNameContainer.add(nodeName);
         nodeNameContainer.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         nodes.add(nodeName);
@@ -172,15 +175,15 @@ public class GraphGui {
         JButton addEdgeBtn = new JButton("+");
         JButton removeEdgeBtn = new JButton("-");
 
-        ArrayList<JTextField> currNodeEdges = new ArrayList<>();
+        List<JTextField> currNodeEdges = new ArrayList<>();
         edgeConnections.add(currNodeEdges);
-        ArrayList<JTextField> currNodeWeights = new ArrayList<>();
+        List<JTextField> currNodeWeights = new ArrayList<>();
         edgeWeights.add(currNodeWeights);
 
         addEdgeBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JPanel edgeContainer = new JPanel();
-                JLabel edgeNum = new JLabel(String.valueOf(currNodeEdges.size()));
+                JLabel edgeNum = new JLabel(String.valueOf(currNodeEdges.size() + 1));
                 JTextField edgeName = new JTextField(10);
                 JTextField edgeWeight = new JTextField("1", 10);
                 edgeName.setMaximumSize(new Dimension(10, 10));
@@ -215,6 +218,19 @@ public class GraphGui {
         nodeInformation.add(addRemoveEdgeContainer);
     }
 
+    private void addGraphVisualisation() {
+        // TODO!: Add convert to DirectedWeightedGraph -> JUNG graph
+        Graph<String, Integer> g = new DirectedSparseGraph<>();
+        g.addVertex("test1");
+        g.addVertex("test2");
+        g.addEdge(1, "test1", "test2");
+        Layout<String, Integer> layout = new FRLayout<String, Integer>(g, new Dimension(500,500));
+        VisualizationViewer<String, Integer> vv = new VisualizationViewer<String, Integer>(layout, new Dimension(500,500));
+        graphVisualContainer = new GraphZoomScrollPane(vv);
+        graphPageContainer.add(graphVisualContainer);
+        graphVisualContainer.setVisible(false);
+    }
+
     private class ButtonAction extends AbstractAction {
         public ButtonAction(String name) {
             super(name);
@@ -228,8 +244,6 @@ public class GraphGui {
                 layout.show(mainPanel, "HomePage");
             } else if (e.getSource() == goToStringGraphBtn) {
                 layout.show(mainPanel, "GraphPage");
-            } else if (e.getSource() == finishGraphBtn) {
-                // TODO!
             }
         }
     }

@@ -12,7 +12,7 @@ import java.util.Map;
 abstract class DirectedWeightedGraph<T> {
     public Map<T, Integer> vertexDict = new HashMap<T, Integer>();
     // Inner Integer[] will be consist of edge[2] where edge[0] = to_node and edge[1] = weight
-    public ArrayList<ArrayList<Integer[]>> adjList = new ArrayList<ArrayList<Integer[]>>();
+    public List<List<Integer[]>> adjList = new ArrayList<>();
     public Integer vertexNum = 0;
 
     // This is for fast setup e.g. will add nodes based on edge list
@@ -57,11 +57,11 @@ abstract class DirectedWeightedGraph<T> {
         Integer nodeFromId = vertexDict.get(from);
         Integer nodeToId = vertexDict.get(to);
         Integer[] newEdge = {nodeToId, weight};
-        ArrayList<Integer[]> fromEdges = adjList.get(nodeFromId);
+        List<Integer[]> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
     }
 
-    private void addEdgeSlowSetup(T from, T to, Integer weight) {
+    protected void addEdgeSlowSetup(T from, T to, Integer weight) {
         if (!nodeExists(from)) {
             throw new IllegalArgumentException("'from' node must exist");
         }
@@ -74,7 +74,7 @@ abstract class DirectedWeightedGraph<T> {
         Integer nodeFromId = vertexDict.get(from);
         Integer nodeToId = vertexDict.get(to);
         Integer[] newEdge = {nodeToId, weight};
-        ArrayList<Integer[]> fromEdges = adjList.get(nodeFromId);
+        List<Integer[]> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
     }
 
@@ -88,7 +88,7 @@ abstract class DirectedWeightedGraph<T> {
         }
         Integer nodeFromId = vertexDict.get(from);
         Integer nodeToId = vertexDict.get(to);
-        ArrayList<Integer[]> fromEdges = adjList.get(nodeFromId);
+        List<Integer[]> fromEdges = adjList.get(nodeFromId);
         for (Integer[] edge: fromEdges) {
             if (edge[0] == nodeToId) {
                 return true;
@@ -103,7 +103,7 @@ abstract class DirectedWeightedGraph<T> {
         }
         Integer nodeFromId = vertexDict.get(from);
         Integer nodeToId = vertexDict.get(to);
-        ArrayList<Integer[]> fromEdges = adjList.get(nodeFromId);
+        List<Integer[]> fromEdges = adjList.get(nodeFromId);
         for (Integer[] edge: fromEdges) {
             if (edge[0] == nodeToId) {
                 return edge[1];
