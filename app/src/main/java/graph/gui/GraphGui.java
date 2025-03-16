@@ -18,6 +18,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import org.apache.commons.collections15.Transformer;
+
+import edu.uci.ics.jung.algorithms.layout.CircleLayout;
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
@@ -220,12 +223,27 @@ public class GraphGui {
 
     private void addGraphVisualisation() {
         // TODO!: Add convert to DirectedWeightedGraph -> JUNG graph
-        Graph<String, Integer> g = new DirectedSparseGraph<>();
+        Graph<String, MyEdge> g = new DirectedSparseGraph<>();
         g.addVertex("test1");
         g.addVertex("test2");
-        g.addEdge(1, "test1", "test2");
-        Layout<String, Integer> layout = new FRLayout<String, Integer>(g, new Dimension(500,500));
-        VisualizationViewer<String, Integer> vv = new VisualizationViewer<String, Integer>(layout, new Dimension(500,500));
+        g.addEdge(new MyEdge(1, 1), "test1", "test2");
+        g.addVertex("test2");
+        g.addEdge(new MyEdge(2, 1), "test2", "test3");
+        g.addEdge(new MyEdge(0, 1), "test3", "test1");
+        Layout<String, MyEdge> layout = new FRLayout<String, MyEdge>(g);
+        VisualizationViewer<String, MyEdge> vv = new VisualizationViewer<String, MyEdge>(layout, new Dimension(500,500));
+        vv.getRenderContext().setVertexLabelTransformer(new Transformer<String, String>() {
+            @Override
+            public String transform(String arg0) {
+                return arg0;
+            }
+        });
+        vv.getRenderContext().setEdgeLabelTransformer(new Transformer<MyEdge, String>() {
+            @Override
+            public String transform(MyEdge arg0) {
+                return arg0.getWeight().toString();
+            }
+        });
         graphVisualContainer = new GraphZoomScrollPane(vv);
         graphPageContainer.add(graphVisualContainer);
         graphVisualContainer.setVisible(false);

@@ -12,8 +12,8 @@ import java.util.Map;
 abstract class DirectedWeightedGraph<T> {
     public Map<T, Integer> vertexDict = new HashMap<T, Integer>();
     // Inner Integer[] will be consist of edge[2] where edge[0] = to_node and edge[1] = weight
-    public List<List<Integer[]>> adjList = new ArrayList<>();
-    public Integer vertexNum = 0;
+    public List<List<MyEdge>> adjList = new ArrayList<>();
+    public int vertexNum = 0;
 
     // This is for fast setup e.g. will add nodes based on edge list
     protected DirectedWeightedGraph(List<T[]> edges, List<Integer> weights) {
@@ -35,13 +35,13 @@ abstract class DirectedWeightedGraph<T> {
     }
 
     private void addNode(T node) {
-        Integer id = vertexNum;
+        int id = vertexNum;
         if (vertexDict.containsKey(node)) {
             throw new IllegalArgumentException(String.format("Duplicate node %s", node));
         }
         vertexDict.put(node, id);
         vertexNum++;
-        adjList.add(new ArrayList<Integer[]>());
+        adjList.add(new ArrayList<MyEdge>());
     }
 
     public void addEdgeFastSetup(T from, T to, Integer weight) {
@@ -54,10 +54,10 @@ abstract class DirectedWeightedGraph<T> {
         if (edgeExists(from, to)) {
             return;
         }
-        Integer nodeFromId = vertexDict.get(from);
-        Integer nodeToId = vertexDict.get(to);
-        Integer[] newEdge = {nodeToId, weight};
-        List<Integer[]> fromEdges = adjList.get(nodeFromId);
+        int nodeFromId = vertexDict.get(from);
+        int nodeToId = vertexDict.get(to);
+        MyEdge newEdge = new MyEdge(nodeToId, weight);
+        List<MyEdge> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
     }
 
@@ -71,10 +71,10 @@ abstract class DirectedWeightedGraph<T> {
         if (edgeExists(from, to)) {
             return;
         }
-        Integer nodeFromId = vertexDict.get(from);
-        Integer nodeToId = vertexDict.get(to);
-        Integer[] newEdge = {nodeToId, weight};
-        List<Integer[]> fromEdges = adjList.get(nodeFromId);
+        int nodeFromId = vertexDict.get(from);
+        int nodeToId = vertexDict.get(to);
+        MyEdge newEdge = new MyEdge(nodeToId, weight);
+        List<MyEdge> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
     }
 
@@ -84,13 +84,13 @@ abstract class DirectedWeightedGraph<T> {
 
     public boolean edgeExists(T from, T to) {
         if (!nodeExists(from) || !nodeExists(to)) {
-            return nodeExists(from) && nodeExists(to);
+            return false;
         }
-        Integer nodeFromId = vertexDict.get(from);
-        Integer nodeToId = vertexDict.get(to);
-        List<Integer[]> fromEdges = adjList.get(nodeFromId);
-        for (Integer[] edge: fromEdges) {
-            if (edge[0] == nodeToId) {
+        int nodeFromId = vertexDict.get(from);
+        int nodeToId = vertexDict.get(to);
+        List<MyEdge> fromEdges = adjList.get(nodeFromId);
+        for (MyEdge edge: fromEdges) {
+            if (edge.getNeigh() == nodeToId) {
                 return true;
             }
         }
@@ -101,14 +101,26 @@ abstract class DirectedWeightedGraph<T> {
         if (!nodeExists(from) || !nodeExists(to)) {
             throw new IllegalArgumentException("'from' AND 'to' node must exist");
         }
-        Integer nodeFromId = vertexDict.get(from);
-        Integer nodeToId = vertexDict.get(to);
-        List<Integer[]> fromEdges = adjList.get(nodeFromId);
-        for (Integer[] edge: fromEdges) {
-            if (edge[0] == nodeToId) {
-                return edge[1];
+        int nodeFromId = vertexDict.get(from);
+        int nodeToId = vertexDict.get(to);
+        List<MyEdge> fromEdges = adjList.get(nodeFromId);
+        for (MyEdge edge: fromEdges) {
+            if (edge.getNeigh() == nodeToId) {
+                return edge.getWeight();
             }
         }
         throw new IllegalArgumentException("edge must exist");
+    }
+
+    public Map<T, Integer> getVertexDict() {
+        return vertexDict;
+    }
+
+    public List<List<MyEdge>> getAdjList() {
+        return adjList;
+    }
+
+    public int getLength() {
+        return vertexNum;
     }
 }
