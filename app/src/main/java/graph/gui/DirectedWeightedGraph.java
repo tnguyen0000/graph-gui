@@ -15,21 +15,21 @@ abstract class DirectedWeightedGraph<T> {
     public List<List<MyEdge>> adjList = new ArrayList<>();
     public int vertexNum = 0;
 
-    // This is for fast setup e.g. will add nodes based on edge list
+    // This is for fast setup e.g. will add nodes based on nodes appearing on edge list
     protected DirectedWeightedGraph(List<T[]> edges, List<Integer> weights) {
-        // e.g edges = Arraylist[[1, 2]], weights = [10] for graph that connects '1' to '2' with edge of weight 10
+        // e.g edges = [[1,2],[2,3]], weights = [10,50] for graph that connects '1' to '2' with edge of weight 10, and '2' to '3' with weight 50
         for (int i = 0; i < edges.size(); i++) {
             addEdgeFastSetup(edges.get(i)[0], edges.get(i)[1], weights.get(i));
         }
     }
     
-    // For slow setup e.g. will only add nodes from nodes list then add edges
+    // For slow setup e.g. will first add nodes from nodes list then add edges
     protected DirectedWeightedGraph(List<T> nodes, List<T[]> edges, List<Integer> weights) {
-        // e.g edges = Arraylist[[1, 2]], weights = [10] for graph that connects '1' to '2' with edge of weight 10
+        // e.g edges = [[1,2],[2,3]], weights = [10,50] for graph that connects '1' to '2' with edge of weight 10, and '2' to '3' with weight 50
         for (int i = 0; i < nodes.size(); i++) {
             addNode(nodes.get(i));
         }
-        for (int i = 0; i < nodes.size(); i++) {
+        for (int i = 0; i < edges.size(); i++) {
             addEdgeSlowSetup(edges.get(i)[0], edges.get(i)[1], weights.get(i));
         }
     }
@@ -97,7 +97,6 @@ abstract class DirectedWeightedGraph<T> {
         return false;
     }
     public Integer getEdgeWeight(T from, T to) {
-        // Assumes that nodes AND edge between them exists
         if (!nodeExists(from) || !nodeExists(to)) {
             throw new IllegalArgumentException("'from' AND 'to' node must exist");
         }
