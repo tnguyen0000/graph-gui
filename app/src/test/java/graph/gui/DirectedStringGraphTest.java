@@ -30,7 +30,7 @@ public class DirectedStringGraphTest {
             "3", 2
         );
         // Nodes
-        assertTrue(graph.getVertexDict().equals(expectedNodes));
+        assertTrue(graph.getVertexMap().equals(expectedNodes));
 
         // Edges
         MyEdge fstExpected = new MyEdge(1, 1);
@@ -43,7 +43,13 @@ public class DirectedStringGraphTest {
         expectedEdges.add(fstList);
         expectedEdges.add(sndList);
         expectedEdges.add(new ArrayList<MyEdge>());
-        assertIterableEquals(expectedEdges, graph.getAdjList());
+        List<List<MyEdge>> actualEdges = graph.getAdjList();
+        // Using bulky assertAll instead of assertIterableEquals as implementing equals function in MyEdge would break JUNG graph in main class
+        assertAll("Test expected adj list = actual adj list",
+            () -> assertEquals(expectedEdges.get(0).get(0).getNeigh(), actualEdges.get(0).get(0).getNeigh()),
+            () -> assertEquals(expectedEdges.get(1).get(0).getNeigh(), actualEdges.get(1).get(0).getNeigh()),
+            () -> assertEquals(expectedEdges.get(2), actualEdges.get(2))
+        );
     }
 
 }

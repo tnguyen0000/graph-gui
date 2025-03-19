@@ -1,16 +1,18 @@
 package graph.gui;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 /* Assumptions:
  *  Vertex ids range from 0 to n-1 where n is number of vertices
  *  Only unique edges from a given vertex to another vertex (e.g. not multiple edges linking same out-node to same in-node)
  */
 abstract class DirectedWeightedGraph<T> {
-    public Map<T, Integer> vertexDict = new HashMap<T, Integer>();
+    public BiMap<T, Integer> vertexMap = HashBiMap.create();
     // Inner Integer[] will be consist of edge[2] where edge[0] = to_node and edge[1] = weight
     public List<List<MyEdge>> adjList = new ArrayList<>();
     public int vertexNum = 0;
@@ -36,10 +38,10 @@ abstract class DirectedWeightedGraph<T> {
 
     private void addNode(T node) {
         int id = vertexNum;
-        if (vertexDict.containsKey(node)) {
+        if (vertexMap.containsKey(node)) {
             throw new IllegalArgumentException(String.format("Duplicate node %s", node));
         }
-        vertexDict.put(node, id);
+        vertexMap.put(node, id);
         vertexNum++;
         adjList.add(new ArrayList<MyEdge>());
     }
@@ -54,8 +56,8 @@ abstract class DirectedWeightedGraph<T> {
         if (edgeExists(from, to)) {
             return;
         }
-        int nodeFromId = vertexDict.get(from);
-        int nodeToId = vertexDict.get(to);
+        int nodeFromId = vertexMap.get(from);
+        int nodeToId = vertexMap.get(to);
         MyEdge newEdge = new MyEdge(nodeToId, weight);
         List<MyEdge> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
@@ -71,23 +73,23 @@ abstract class DirectedWeightedGraph<T> {
         if (edgeExists(from, to)) {
             return;
         }
-        int nodeFromId = vertexDict.get(from);
-        int nodeToId = vertexDict.get(to);
+        int nodeFromId = vertexMap.get(from);
+        int nodeToId = vertexMap.get(to);
         MyEdge newEdge = new MyEdge(nodeToId, weight);
         List<MyEdge> fromEdges = adjList.get(nodeFromId);
         fromEdges.add(newEdge);
     }
 
     public boolean nodeExists(T node) {
-        return vertexDict.containsKey(node);
+        return vertexMap.containsKey(node);
     }
 
     public boolean edgeExists(T from, T to) {
         if (!nodeExists(from) || !nodeExists(to)) {
             return false;
         }
-        int nodeFromId = vertexDict.get(from);
-        int nodeToId = vertexDict.get(to);
+        int nodeFromId = vertexMap.get(from);
+        int nodeToId = vertexMap.get(to);
         List<MyEdge> fromEdges = adjList.get(nodeFromId);
         for (MyEdge edge: fromEdges) {
             if (edge.getNeigh() == nodeToId) {
@@ -100,8 +102,8 @@ abstract class DirectedWeightedGraph<T> {
         if (!nodeExists(from) || !nodeExists(to)) {
             throw new IllegalArgumentException("'from' AND 'to' node must exist");
         }
-        int nodeFromId = vertexDict.get(from);
-        int nodeToId = vertexDict.get(to);
+        int nodeFromId = vertexMap.get(from);
+        int nodeToId = vertexMap.get(to);
         List<MyEdge> fromEdges = adjList.get(nodeFromId);
         for (MyEdge edge: fromEdges) {
             if (edge.getNeigh() == nodeToId) {
@@ -111,8 +113,13 @@ abstract class DirectedWeightedGraph<T> {
         throw new IllegalArgumentException("edge must exist");
     }
 
-    public Map<T, Integer> getVertexDict() {
-        return vertexDict;
+    public Map<T, Integer> getVertexMap() {
+        return vertexMap;
+    }
+
+    // As vertex name and vertex id are unique, the map can be inversed
+    public Map<Integer, T> getInverseVertexMap() {
+        return vertexMap.inverse();
     }
 
     public List<List<MyEdge>> getAdjList() {

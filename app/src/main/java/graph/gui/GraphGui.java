@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -35,7 +36,7 @@ public class GraphGui {
     private JButton goToStringGraphBtn, goHomeBtn, addNodeBtn, removeNodeBtn, resetGraphBtn, finishGraphBtn;
     JLabel graphErrorLabel = new JLabel();
     // Index of nodes corresponds to index of edges
-    private List<JTextField> nodes;
+    private List<JTextField> nodeTextFields;
     private List<List<EdgeJTextField>> edgeJTextFields; // edgeTextFields[v] = adjacency list of node v which shows neighbour connection + weight
     private DirectedStringGraph directedStringGraph;
 
@@ -88,7 +89,7 @@ public class GraphGui {
         graphPageMainButtonsFunctionality();
         graphPageNodeContainer.setLayout(new GridLayout(0, 1));
         graphPageNodeContainerWrapper.setPreferredSize(new Dimension(700, 500));
-        nodes = new ArrayList<>();
+        nodeTextFields = new ArrayList<>();
         edgeJTextFields = new ArrayList<>();
 
         goHomeBtnWrapper.add(goHomeBtn);
@@ -120,8 +121,8 @@ public class GraphGui {
         removeNodeBtn = new JButton("Remove Node");
         removeNodeBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (nodes.size() > 0) {
-                    nodes.removeLast();
+                if (nodeTextFields.size() > 0) {
+                    nodeTextFields.removeLast();
                     edgeJTextFields.removeLast();
                     graphPageNodeContainer.remove(graphPageNodeContainer.getComponentCount() - 1);
                     graphPageContainer.revalidate();
@@ -134,7 +135,7 @@ public class GraphGui {
         resetGraphBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 graphVisualisationCards.setVisible(false);
-                nodes.clear();
+                nodeTextFields.clear();
                 edgeJTextFields.clear();
                 graphPageNodeContainer.removeAll();
                 graphPageNodeContainer.revalidate();
@@ -146,6 +147,12 @@ public class GraphGui {
         finishGraphBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    if (graphVisualContainer.getComponentCount() > 0) {
+                        graphVisualContainer.removeAll();
+                    }
+                    if (nodeTextFields.size() == 0) {
+                        return;
+                    }
                     validateAndSetGraph();
                     addGraphVisualisation();
                     CardLayout layout = (CardLayout) graphVisualisationCards.getLayout();
@@ -171,11 +178,11 @@ public class GraphGui {
         nodeInformation.setLayout(new BoxLayout(nodeInformation, 0));
         JPanel nodeNameContainer = new JPanel(new GridLayout(1, 2));
         nodeNameContainer.setPreferredSize(new Dimension(100, 200));
-        nodeNameContainer.add(new JLabel(String.valueOf(nodes.size())));
-        JTextField nodeName = new JTextField(String.valueOf(nodes.size()));
+        nodeNameContainer.add(new JLabel(String.valueOf(nodeTextFields.size())));
+        JTextField nodeName = new JTextField(String.valueOf(nodeTextFields.size()));
         nodeNameContainer.add(nodeName);
         nodeNameContainer.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        nodes.add(nodeName);
+        nodeTextFields.add(nodeName);
         nodeInformation.add(nodeNameContainer);
         this.addEdgeInformation(nodeInformation);
         graphPageNodeContainer.add(nodeInformation);
@@ -238,7 +245,7 @@ public class GraphGui {
 
     // Converts user inputs to DirectedStringGraph for validation
     private void validateAndSetGraph() {
-        List<String> nodeStrings = nodes.stream().map(node -> (node.getText())).collect(Collectors.toList());
+        List<String> nodeStrings = nodeTextFields.stream().map(node -> (node.getText())).collect(Collectors.toList());
         if (nodeStrings.size() == 0) {
             return;
         }
@@ -259,16 +266,19 @@ public class GraphGui {
 
     // Sets up the graph visualiser
     private void addGraphVisualisation() {
-        // TODO!: Add convert to DirectedWeightedGraph -> JUNG graph
         Graph<String, MyEdge> g = new DirectedSparseGraph<>();
-        g.addVertex("test1");
-        g.addVertex("test2");
-        g.addEdge(new MyEdge(1, 1), "test1", "test2");
-        g.addVertex("test2");
-        g.addEdge(new MyEdge(2, 1), "test2", "test3");
-        g.addEdge(new MyEdge(0, 1), "test3", "test1");
-        if (graphVisualContainer.getComponentCount() > 0) {
-            graphVisualContainer.removeAll();
+        Map<Integer, String> vertexInverseMap = directedStringGraph.getInverseVertexMap();
+        for (String vertexName : vertexInverseMap.values()) {
+            g.addVertex(vertexName);
+        }
+        List<List<MyEdge>> adjListNodes = directedStringGraph.getAdjList();
+        for (int nodeId = 0; nodeId < directedStringGraph.vertexNum; nodeId++) {
+            List<MyEdge> adjListEdges = adjListNodes.get(nodeId);
+            for (int neighNum = 0; neighNum < adjListEdges.size(); neighNum++) {
+                MyEdge neighEdge = adjListEdges.get(neighNum);
+                String neighString = vertexInverseMap.get(neighEdge.getNeigh());
+                g.addEdge(neighEdge, vertexInverseMap.get(nodeId), neighString);
+            }
         }
         Layout<String, MyEdge> layout = new FRLayout<String, MyEdge>(g);
         VisualizationViewer<String, MyEdge> vv = new VisualizationViewer<String, MyEdge>(layout, new Dimension(500,500));
