@@ -27,6 +27,7 @@ import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
+import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 
 public class GraphGui {
     private JFrame frame = new JFrame();
@@ -294,7 +295,16 @@ public class GraphGui {
                 return arg0.getWeight().toString();
             }
         });
-        graphVisualContainer.add(new GraphZoomScrollPane(vv));
+        DefaultModalGraphMouse<String, MyEdge> gm = new DefaultModalGraphMouse<>();
+        vv.setGraphMouse(gm);
+        GraphZoomScrollPane graphScrollPane = new GraphZoomScrollPane(vv);
+        graphVisualContainer.add(graphScrollPane, BorderLayout.NORTH);
+
+        // TODO!: add additional graph functionality e.g. algos
+        //JButton test = new JButton("ads");
+        //JButton test2 = new JButton("2");
+        //graphVisualContainer.add(test, BorderLayout.CENTER);
+        //graphVisualContainer.add(test2, BorderLayout.SOUTH);
     }
 
     // Container class for edge connection + weight
