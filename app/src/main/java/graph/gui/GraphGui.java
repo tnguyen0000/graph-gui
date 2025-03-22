@@ -267,13 +267,27 @@ public class GraphGui {
 
     // Sets up the graph visualiser
     private void addGraphVisualisation() {
+        Graph<String, MyEdge> g = convertToJUNGGraph(this.directedStringGraph);
+        VisualizationViewer<String, MyEdge> vv = createVisualizationViewer(g);
+        GraphZoomScrollPane graphScrollPane = new GraphZoomScrollPane(vv);
+        graphVisualContainer.add(graphScrollPane, BorderLayout.NORTH);
+
+        // TODO!: add additional graph functionality e.g. algos
+        //JButton test = new JButton("ads");
+        //JButton test2 = new JButton("2");
+        //graphVisualContainer.add(test, BorderLayout.CENTER);
+        //graphVisualContainer.add(test2, BorderLayout.SOUTH);
+    }
+
+    // Converts DirectedStringGraph to JUNG Graph
+    private Graph<String, MyEdge> convertToJUNGGraph(DirectedStringGraph graph) {
         Graph<String, MyEdge> g = new DirectedSparseGraph<>();
-        Map<Integer, String> vertexInverseMap = directedStringGraph.getInverseVertexMap();
+        Map<Integer, String> vertexInverseMap = graph.getInverseVertexMap();
         for (String vertexName : vertexInverseMap.values()) {
             g.addVertex(vertexName);
         }
-        List<List<MyEdge>> adjListNodes = directedStringGraph.getAdjList();
-        for (int nodeId = 0; nodeId < directedStringGraph.vertexNum; nodeId++) {
+        List<List<MyEdge>> adjListNodes = graph.getAdjList();
+        for (int nodeId = 0; nodeId < graph.vertexNum; nodeId++) {
             List<MyEdge> adjListEdges = adjListNodes.get(nodeId);
             for (int neighNum = 0; neighNum < adjListEdges.size(); neighNum++) {
                 MyEdge neighEdge = adjListEdges.get(neighNum);
@@ -281,6 +295,11 @@ public class GraphGui {
                 g.addEdge(neighEdge, vertexInverseMap.get(nodeId), neighString);
             }
         }
+        return g;
+    }
+
+    // Creates and returns visualisation viewer
+    private VisualizationViewer<String, MyEdge> createVisualizationViewer(Graph<String, MyEdge> g) {
         Layout<String, MyEdge> layout = new FRLayout<String, MyEdge>(g);
         VisualizationViewer<String, MyEdge> vv = new VisualizationViewer<String, MyEdge>(layout, new Dimension(500,500));
         vv.getRenderContext().setVertexLabelTransformer(new Transformer<String, String>() {
@@ -297,14 +316,7 @@ public class GraphGui {
         });
         DefaultModalGraphMouse<String, MyEdge> gm = new DefaultModalGraphMouse<>();
         vv.setGraphMouse(gm);
-        GraphZoomScrollPane graphScrollPane = new GraphZoomScrollPane(vv);
-        graphVisualContainer.add(graphScrollPane, BorderLayout.NORTH);
-
-        // TODO!: add additional graph functionality e.g. algos
-        //JButton test = new JButton("ads");
-        //JButton test2 = new JButton("2");
-        //graphVisualContainer.add(test, BorderLayout.CENTER);
-        //graphVisualContainer.add(test2, BorderLayout.SOUTH);
+        return vv;
     }
 
     // Container class for edge connection + weight

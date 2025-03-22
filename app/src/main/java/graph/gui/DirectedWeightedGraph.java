@@ -1,8 +1,12 @@
 package graph.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -11,7 +15,7 @@ import com.google.common.collect.HashBiMap;
  *  Vertex ids range from 0 to n-1 where n is number of vertices
  *  Only unique edges from a given vertex to another vertex (e.g. not multiple edges linking same out-node to same in-node)
  */
-abstract class DirectedWeightedGraph<T> {
+abstract class DirectedWeightedGraph<T extends Object> implements GraphMethods<T> {
     public BiMap<T, Integer> vertexMap = HashBiMap.create();
     // Inner Integer[] will be consist of edge[2] where edge[0] = to_node and edge[1] = weight
     public List<List<MyEdge>> adjList = new ArrayList<>();
@@ -128,5 +132,47 @@ abstract class DirectedWeightedGraph<T> {
 
     public int getLength() {
         return vertexNum;
+    }
+
+    public List<T> topologicalSort() {
+        // Map of nodeId to number of in-degrees
+        Map<Integer, Integer> inDegrees = new HashMap<>();
+        for (int i = 0; i < adjList.size(); i++) {
+            inDegrees.putIfAbsent(i, 0);
+            List<MyEdge> neighbours = adjList.get(i);
+            for (int j = 0; j < neighbours.size(); j++) {
+                int inDegree = inDegrees.getOrDefault(neighbours.get(j).getNeigh(), 0);
+                inDegrees.put(neighbours.get(j).getNeigh(), inDegree + 1);
+            }
+        }
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < inDegrees.size(); i++) {
+            int inDegree = inDegrees.get(i);
+            if (inDegree == 0) {
+                q.add(i);
+            }
+        }
+
+        ArrayList<Integer> resIds = new ArrayList<>();
+        while (q.size() > 0) {
+            int pop = q.poll();
+            resIds.add(pop);
+            for (MyEdge edge : adjList.get(pop)) {
+                int neighId = edge.getNeigh();
+                int newInDegree = inDegrees.get(neighId) - 1;
+                if (newInDegree == 0) {
+                    q.add(neighId);
+                }
+                inDegrees.put(neighId, newInDegree);
+            }
+        }
+
+        if (resIds.size() != vertexNum) {
+            // Exception may not be the right one but it's the best for now
+            throw new IllegalArgumentException("Cycle detected in graph.");
+        }
+
+        Map<Integer, T> inverse = getInverseVertexMap();
+        return resIds.stream().map(x -> (inverse.get(x))).collect(Collectors.toList());
     }
 }
