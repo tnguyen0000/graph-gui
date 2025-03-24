@@ -52,4 +52,22 @@ public class DirectedStringGraphTest {
         );
     }
 
+    @Test
+    @DisplayName("Topological sort on graph with 4 nodes")
+    public void topologicalSort() {
+        // Graph = 2->{1,3}->4
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"2","1"};
+        String[] sndEdge = {"2","3"};
+        String[] thrdEdge = {"1","4"};
+        String[] frthEdge = {"3","4"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge, thrdEdge, frthEdge));
+        weights.addAll(Arrays.asList(1,1,1,1));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        List<String> actual = graph.topologicalSort();
+        List<String> expected = new ArrayList<>();
+        expected.addAll(Arrays.asList("2","1","3","4"));
+        assertIterableEquals(expected, actual);
+    }
 }

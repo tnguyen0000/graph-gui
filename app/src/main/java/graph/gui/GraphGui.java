@@ -12,12 +12,15 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -40,6 +43,8 @@ public class GraphGui {
     private List<JTextField> nodeTextFields;
     private List<List<EdgeJTextField>> edgeJTextFields; // edgeTextFields[v] = adjacency list of node v which shows neighbour connection + weight
     private DirectedStringGraph directedStringGraph;
+    JRadioButton[] graphAlgoRadioBoxes;
+    private static final String[] GRAPH_ALGOS = {"Topological"};
 
     // Initialise GraphGui
     public GraphGui() {
@@ -113,6 +118,7 @@ public class GraphGui {
     private void graphPageMainButtonsFunctionality() {
         addNodeBtn = new JButton("Add Node");
         addNodeBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 addNode();
                 graphPageNodeContainerWrapper.validate();
@@ -121,6 +127,7 @@ public class GraphGui {
 
         removeNodeBtn = new JButton("Remove Node");
         removeNodeBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 if (nodeTextFields.size() > 0) {
                     nodeTextFields.removeLast();
@@ -134,6 +141,7 @@ public class GraphGui {
 
         resetGraphBtn = new JButton("Reset Graph");
         resetGraphBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 graphVisualisationCards.setVisible(false);
                 nodeTextFields.clear();
@@ -146,6 +154,7 @@ public class GraphGui {
 
         finishGraphBtn = new JButton("Finish Graph");
         finishGraphBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 try {
                     if (graphVisualContainer.getComponentCount() > 0) {
@@ -208,6 +217,7 @@ public class GraphGui {
 
         // Functionality to add edge to node
         addEdgeBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 JPanel edgeContainer = new JPanel();
                 JLabel edgeNum = new JLabel(String.valueOf(currNodeEdges.size() + 1));
@@ -226,6 +236,7 @@ public class GraphGui {
 
         // Functionality to remove edge from node
         removeEdgeBtn.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 if (currNodeEdges.size() > 0) {
                     currNodeEdges.removeLast();
@@ -271,12 +282,8 @@ public class GraphGui {
         VisualizationViewer<String, MyEdge> vv = createVisualizationViewer(g);
         GraphZoomScrollPane graphScrollPane = new GraphZoomScrollPane(vv);
         graphVisualContainer.add(graphScrollPane, BorderLayout.NORTH);
-
-        // TODO!: add additional graph functionality e.g. algos
-        //JButton test = new JButton("ads");
-        //JButton test2 = new JButton("2");
-        //graphVisualContainer.add(test, BorderLayout.CENTER);
-        //graphVisualContainer.add(test2, BorderLayout.SOUTH);
+        
+        addGraphAlgorithmFunction();
     }
 
     // Converts DirectedStringGraph to JUNG Graph
@@ -317,6 +324,35 @@ public class GraphGui {
         DefaultModalGraphMouse<String, MyEdge> gm = new DefaultModalGraphMouse<>();
         vv.setGraphMouse(gm);
         return vv;
+    }
+
+    // Add radio boxes to select graph algorithm.
+    private void addGraphAlgorithmFunction() {
+        JPanel graphAlgorithmSelectContainer = new JPanel();
+        graphAlgorithmSelectContainer.setLayout(new GridLayout(3,1));
+        graphAlgoRadioBoxes = new JRadioButton[GRAPH_ALGOS.length];
+        ButtonGroup radioAlgoGroup = new ButtonGroup();
+        JPanel graphAlgoRadioContainer = new JPanel();
+        graphAlgoRadioContainer.setLayout(new GridLayout(1, GRAPH_ALGOS.length));
+        for (int i = 0; i < graphAlgoRadioBoxes.length; i++) {
+            graphAlgoRadioBoxes[i] = new JRadioButton(GRAPH_ALGOS[i]);
+            graphAlgoRadioBoxes[i].setHorizontalAlignment(SwingConstants.CENTER);
+            radioAlgoGroup.add(graphAlgoRadioBoxes[i]);
+            graphAlgoRadioContainer.add(graphAlgoRadioBoxes[i]);
+        }
+        
+        JButton submitAlgoBtn = new JButton("Apply Algorithm");
+        submitAlgoBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Add graph algorithm result
+            }
+        });
+        graphAlgorithmSelectContainer.add(new JLabel()); // Empty JLabel for padding
+        graphAlgorithmSelectContainer.add(graphAlgoRadioContainer);
+        graphAlgorithmSelectContainer.add(new JButton("Apply Algorithm"));
+        graphVisualContainer.add(graphAlgorithmSelectContainer, BorderLayout.CENTER);
+        
     }
 
     // Container class for edge connection + weight

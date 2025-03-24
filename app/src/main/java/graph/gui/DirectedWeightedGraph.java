@@ -134,6 +134,7 @@ abstract class DirectedWeightedGraph<T extends Object> implements GraphMethods<T
         return vertexNum;
     }
 
+    @Override
     public List<T> topologicalSort() {
         // Map of nodeId to number of in-degrees
         Map<Integer, Integer> inDegrees = new HashMap<>();
