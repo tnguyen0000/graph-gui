@@ -1,3 +1,7 @@
+/* Limitations / Issues
+ * 1. Scroll pane on graph page will disappear if window is resized. To fix, must reset graph, go to home page
+ *    then go back on graph page
+ */
 package graph.gui;
 
 import java.awt.*;
@@ -19,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
@@ -39,11 +44,10 @@ public class GraphGui {
     private JScrollPane graphPageNodeContainerWrapper = new JScrollPane(graphPageNodeContainer), graphPageContainerScroll = new JScrollPane(graphPageContainer);
     private JButton goToStringGraphBtn, goHomeBtn, addNodeBtn, removeNodeBtn, resetGraphBtn, finishGraphBtn;
     JLabel graphErrorLabel = new JLabel();
-    // Index of nodes corresponds to index of edges
-    private List<JTextField> nodeTextFields;
+    private List<JTextField> nodeTextFields; // Index of nodes corresponds to index of edges
     private List<List<EdgeJTextField>> edgeJTextFields; // edgeTextFields[v] = adjacency list of node v which shows neighbour connection + weight
     private DirectedStringGraph directedStringGraph;
-    JRadioButton[] graphAlgoRadioBoxes;
+    ButtonGroup radioAlgorithmGroup;
     private static final String[] GRAPH_ALGOS = {"Topological"};
 
     // Initialise GraphGui
@@ -84,13 +88,13 @@ public class GraphGui {
 
     // Sets up the graph creation/rendering page
     private void createGraphPage() {
+        graphPageContainerScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel goHomeBtnWrapper = new JPanel(new BorderLayout());
         JPanel addRemoveNodeBtnWrapper = new JPanel(new GridLayout(1, 2));
         JPanel resetGraphBtnWrapper = new JPanel(new BorderLayout());
         JPanel finishGraphBtnWrapper = new JPanel(new BorderLayout());
         graphPageContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
         graphPageContainer.setLayout(new BoxLayout(graphPageContainer, BoxLayout.Y_AXIS));
-        //graphPageContainer.setPreferredSize(new Dimension(100, 600));
         goHomeBtn = new JButton(new ButtonAction("Go Home"));
         graphPageMainButtonsFunctionality();
         graphPageNodeContainer.setLayout(new GridLayout(0, 1));
@@ -223,7 +227,6 @@ public class GraphGui {
                 JLabel edgeNum = new JLabel(String.valueOf(currNodeEdges.size() + 1));
                 JTextField edgeName = new JTextField(10);
                 JTextField edgeWeight = new JTextField("1", 10);
-                edgeName.setMaximumSize(new Dimension(10, 10));
                 currNodeEdges.add(new EdgeJTextField(edgeName, edgeWeight));
                 edgeContainer.add(edgeNum);
                 edgeContainer.add(edgeName);
@@ -330,29 +333,57 @@ public class GraphGui {
     private void addGraphAlgorithmFunction() {
         JPanel graphAlgorithmSelectContainer = new JPanel();
         graphAlgorithmSelectContainer.setLayout(new GridLayout(3,1));
-        graphAlgoRadioBoxes = new JRadioButton[GRAPH_ALGOS.length];
-        ButtonGroup radioAlgoGroup = new ButtonGroup();
+        JRadioButton[] graphAlgoRadioBoxes = new JRadioButton[GRAPH_ALGOS.length];
+        radioAlgorithmGroup = new ButtonGroup();
         JPanel graphAlgoRadioContainer = new JPanel();
         graphAlgoRadioContainer.setLayout(new GridLayout(1, GRAPH_ALGOS.length));
         for (int i = 0; i < graphAlgoRadioBoxes.length; i++) {
             graphAlgoRadioBoxes[i] = new JRadioButton(GRAPH_ALGOS[i]);
+            if (i == 0) {
+                graphAlgoRadioBoxes[i].setSelected(true);
+            }
+            graphAlgoRadioBoxes[i].setActionCommand(GRAPH_ALGOS[i]);
             graphAlgoRadioBoxes[i].setHorizontalAlignment(SwingConstants.CENTER);
-            radioAlgoGroup.add(graphAlgoRadioBoxes[i]);
+            radioAlgorithmGroup.add(graphAlgoRadioBoxes[i]);
             graphAlgoRadioContainer.add(graphAlgoRadioBoxes[i]);
         }
-        
         JButton submitAlgoBtn = new JButton("Apply Algorithm");
         submitAlgoBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO Add graph algorithm result
+                insertAlgorithmResult();
             }
         });
         graphAlgorithmSelectContainer.add(new JLabel()); // Empty JLabel for padding
         graphAlgorithmSelectContainer.add(graphAlgoRadioContainer);
-        graphAlgorithmSelectContainer.add(new JButton("Apply Algorithm"));
+        graphAlgorithmSelectContainer.add(submitAlgoBtn);
         graphVisualContainer.add(graphAlgorithmSelectContainer, BorderLayout.CENTER);
         
+    }
+
+    private void insertAlgorithmResult() {
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        graphVisualContainer.add(containerPanel, BorderLayout.SOUTH);
+        try {
+            String algorithmCommand = radioAlgorithmGroup.getSelection().getActionCommand();
+            switch (algorithmCommand) {
+                case "Topological":
+                    List<String> topologicalResult = directedStringGraph.topologicalSort();
+                    JTextArea topologicalString = new JTextArea(topologicalResult.toString());
+                    topologicalString.setFont(new Font("Arial", Font.BOLD, 24));
+                    topologicalString.setLineWrap(true);
+                    topologicalString.setEditable(false);
+                    containerPanel.add(topologicalString);
+                    break;
+                default:
+                    throw new Exception("Algorithm/command not implemented!");
+            }
+        } catch (Exception error) {
+            String errorString = error.toString();
+            containerPanel.add(new JLabel(errorString, SwingConstants.CENTER));
+        }
+        graphVisualContainer.revalidate();
+        graphVisualContainer.repaint();
     }
 
     // Container class for edge connection + weight
