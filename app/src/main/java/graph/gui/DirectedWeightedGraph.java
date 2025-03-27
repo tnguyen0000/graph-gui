@@ -1,10 +1,12 @@
 package graph.gui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
@@ -175,5 +177,51 @@ abstract class DirectedWeightedGraph<T extends Object> implements GraphMethods<T
 
         Map<Integer, T> inverse = getInverseVertexMap();
         return resIds.stream().map(x -> (inverse.get(x))).collect(Collectors.toList());
+    }
+
+    // Returns shortest path from source to other connected nodes through an adjacency list
+    protected List<List<MyEdge>> dijkstraHelper(T source) {
+        if (!vertexMap.containsKey(source)) {
+            throw new IllegalArgumentException("Source node invalid");
+        }
+        int[] prev = new int[vertexNum];
+        Arrays.fill(prev, -1);
+        int[] distArr = new int[vertexNum];
+        Arrays.fill(distArr, Integer.MAX_VALUE);
+        PriorityQueue<Helpers.Pair> pq = new PriorityQueue<>(new Helpers.PairComparator());
+        int sourceId = vertexMap.get(source);
+        pq.add(new Helpers.Pair(0, sourceId));
+        List<List<MyEdge>> adjList = getAdjList();
+        while (pq.size() != 0) {
+            Helpers.Pair pop = pq.poll();
+            int dist = pop.getDistance();
+            int currNodeId = pop.currNodeId();
+            for (MyEdge neighbour : adjList.get(currNodeId)) {
+                int newDist = dist + neighbour.getWeight();
+                int neighbourId = neighbour.getNeigh();
+                if (newDist < distArr[neighbourId]) {
+                    pq.add(new Helpers.Pair(newDist, neighbourId));
+                    distArr[neighbourId] = newDist;
+                    prev[neighbourId] = currNodeId;
+                }
+            }
+        }
+        Map<Integer, T> inverseMap = getInverseVertexMap();
+        List<List<MyEdge>> newAdjList = new ArrayList<>();
+        // Creating new adjacency list
+        for (int i = 0; i < vertexNum; i++) { 
+            List<MyEdge> neighbours = new ArrayList<>();
+            newAdjList.add(neighbours);
+        }
+        // Adding shortest path edges to adjacency list
+        for (int i = 0; i < prev.length; i++) {
+            if (prev[i] > -1) {
+                T v = inverseMap.get(prev[i]);
+                T u = inverseMap.get(i);
+                int weight = this.getEdgeWeight(v, u);
+                newAdjList.get(prev[i]).add(new MyEdge(i, weight));
+            }
+        }
+        return newAdjList;
     }
 }

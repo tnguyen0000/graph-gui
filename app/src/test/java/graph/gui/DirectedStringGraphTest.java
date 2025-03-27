@@ -70,4 +70,55 @@ public class DirectedStringGraphTest {
         expected.addAll(Arrays.asList("2","1","3","4"));
         assertIterableEquals(expected, actual);
     }
+
+    @Test
+    @DisplayName("Dijkstra on simple graph with 4 nodes")
+    public void dijkstraAlgoSimple() {
+        // Graph = 2->{1,3}->4->3
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"1","2"};
+        String[] sndEdge = {"1","3"};
+        String[] thrdEdge = {"2","4"};
+        String[] frthEdge = {"3","4"};
+        String[] fifthEdge = {"4","3"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge, thrdEdge, frthEdge, fifthEdge));
+        weights.addAll(Arrays.asList(1,100,1,1,3));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        DirectedStringGraph dijkstraGraph = (DirectedStringGraph) graph.dijkstra("1");
+        assertAll("Test expected edge weight = actual weight",
+            () -> assertEquals(1, dijkstraGraph.getEdgeWeight("1", "2")),
+            () -> assertEquals(1, dijkstraGraph.getEdgeWeight("2", "4")),
+            () -> assertEquals(3, dijkstraGraph.getEdgeWeight("4", "3"))
+        );
+        assertTrue(graph.edgeExists("3", "4"));
+        assertThrows(IllegalArgumentException.class, () -> {
+            dijkstraGraph.getEdgeWeight("3", "4");
+        });
+    }
+
+    @Test
+    @DisplayName("Dijkstra on graph with no paths")
+    public void dijkstraAlgoNoPaths() {
+        // Graph = 2->{1,3}->4
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"2","1"};
+        String[] sndEdge = {"2","3"};
+        String[] thrdEdge = {"1","4"};
+        String[] frthEdge = {"3","4"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge, thrdEdge, frthEdge));
+        weights.addAll(Arrays.asList(100,1,1,1));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        DirectedStringGraph dijkstraGraph = (DirectedStringGraph) graph.dijkstra("4"); //
+        assertThrows(IllegalArgumentException.class, () -> {
+            dijkstraGraph.getEdgeWeight("4", "3");
+        });
+        assertThrows(IllegalArgumentException.class, () -> {
+            dijkstraGraph.getEdgeWeight("4", "2");
+        });
+        assertThrows(IllegalArgumentException.class, () -> {
+            dijkstraGraph.getEdgeWeight("3", "4");
+        });
+    }
 }

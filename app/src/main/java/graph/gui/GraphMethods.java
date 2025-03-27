@@ -9,9 +9,14 @@ public interface GraphMethods<T extends Object> {
      * Throws exception if cycle detected
     */
     public List<T> topologicalSort();
+    /* Dijkstra
+     * 
+     * Returns DirectedWeightedGraph of dijkstra graph.
+     * Throws exception if source node doesn't exist
+    */
+    public DirectedWeightedGraph<T> dijkstra(T source);
     // public Integer edmondsKarp(T source, T sink);
     // public void MST(T source);
-    // public void dijkstra(T source);
     // public void bellmanFord(T source);
     
 }
