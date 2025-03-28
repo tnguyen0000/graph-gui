@@ -190,6 +190,7 @@ abstract class DirectedWeightedGraph<T extends Object> implements GraphMethods<T
         Arrays.fill(distArr, Integer.MAX_VALUE);
         PriorityQueue<Helpers.Pair> pq = new PriorityQueue<>(new Helpers.PairComparator());
         int sourceId = vertexMap.get(source);
+        distArr[sourceId] = Integer.MIN_VALUE;
         pq.add(new Helpers.Pair(0, sourceId));
         List<List<MyEdge>> adjList = getAdjList();
         while (pq.size() != 0) {

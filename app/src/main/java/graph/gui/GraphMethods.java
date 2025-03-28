@@ -16,7 +16,7 @@ public interface GraphMethods<T extends Object> {
     */
     public DirectedWeightedGraph<T> dijkstra(T source);
     // public Integer edmondsKarp(T source, T sink);
-    // public void MST(T source);
+    // public void MST();
     // public void bellmanFord(T source);
     
 }

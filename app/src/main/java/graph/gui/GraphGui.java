@@ -48,7 +48,10 @@ public class GraphGui {
     private List<List<EdgeJTextField>> edgeJTextFields; // edgeTextFields[v] = adjacency list of node v which shows neighbour connection + weight
     private DirectedStringGraph directedStringGraph;
     ButtonGroup radioAlgorithmGroup;
-    private static final String[] GRAPH_ALGOS = {"Topological"};
+    private JPanel algorithmResultContainer, emptyUserInputContainer, oneUserInputsContainer; // twoUserInputContainer;
+    private JPanel algorithmUserInputCards = new JPanel(new CardLayout());
+    private JTextField oneUserInputFstField;
+    private static final String[] GRAPH_ALGOS = {"Topological", "Dijkstra"};
 
     // Initialise GraphGui
     public GraphGui() {
@@ -57,7 +60,7 @@ public class GraphGui {
         createHomePage();
         createGraphPage();
 
-        setUpCards();        
+        setUpInitialCards();        
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setTitle("Graphs");
@@ -66,7 +69,7 @@ public class GraphGui {
     }
 
     // Sets up card layouts of GUI app
-    private void setUpCards() {
+    private void setUpInitialCards() {
         // Sets up two page card layouts
         mainPanel.add(homePageContainer, "HomePage");
         mainPanel.add(graphPageContainerScroll, "GraphPage");
@@ -332,11 +335,12 @@ public class GraphGui {
     // Add radio boxes to select graph algorithm.
     private void addGraphAlgorithmFunction() {
         JPanel graphAlgorithmSelectContainer = new JPanel();
-        graphAlgorithmSelectContainer.setLayout(new GridLayout(3,1));
+        graphAlgorithmSelectContainer.setLayout(new GridLayout(4,1));
         JRadioButton[] graphAlgoRadioBoxes = new JRadioButton[GRAPH_ALGOS.length];
         radioAlgorithmGroup = new ButtonGroup();
         JPanel graphAlgoRadioContainer = new JPanel();
         graphAlgoRadioContainer.setLayout(new GridLayout(1, GRAPH_ALGOS.length));
+        setUpUserInputCards();
         for (int i = 0; i < graphAlgoRadioBoxes.length; i++) {
             graphAlgoRadioBoxes[i] = new JRadioButton(GRAPH_ALGOS[i]);
             if (i == 0) {
@@ -346,8 +350,32 @@ public class GraphGui {
             graphAlgoRadioBoxes[i].setHorizontalAlignment(SwingConstants.CENTER);
             radioAlgorithmGroup.add(graphAlgoRadioBoxes[i]);
             graphAlgoRadioContainer.add(graphAlgoRadioBoxes[i]);
+            CardLayout inputLayout = (CardLayout) algorithmUserInputCards.getLayout();
+            switch (GRAPH_ALGOS[i]) {
+                case "Dijkstra":
+                    graphAlgoRadioBoxes[i].addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            inputLayout.show(algorithmUserInputCards, "SingleInput");
+                            algorithmUserInputCards.repaint();
+                            algorithmUserInputCards.revalidate();
+                        }
+                    });
+                    break;
+                default:
+                    graphAlgoRadioBoxes[i].addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            inputLayout.show(algorithmUserInputCards, "NoInput");
+                            algorithmUserInputCards.repaint();
+                            algorithmUserInputCards.revalidate();
+                        }
+                    });
+                    break;
+            }
         }
         JButton submitAlgoBtn = new JButton("Apply Algorithm");
+        algorithmResultContainer = new JPanel(new BorderLayout());
         submitAlgoBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -356,14 +384,15 @@ public class GraphGui {
         });
         graphAlgorithmSelectContainer.add(new JLabel()); // Empty JLabel for padding
         graphAlgorithmSelectContainer.add(graphAlgoRadioContainer);
+        graphAlgorithmSelectContainer.add(algorithmUserInputCards);
         graphAlgorithmSelectContainer.add(submitAlgoBtn);
         graphVisualContainer.add(graphAlgorithmSelectContainer, BorderLayout.CENTER);
         
     }
 
     private void insertAlgorithmResult() {
-        JPanel containerPanel = new JPanel(new BorderLayout());
-        graphVisualContainer.add(containerPanel, BorderLayout.SOUTH);
+        algorithmResultContainer.removeAll();
+        graphVisualContainer.add(algorithmResultContainer, BorderLayout.SOUTH);
         try {
             String algorithmCommand = radioAlgorithmGroup.getSelection().getActionCommand();
             switch (algorithmCommand) {
@@ -373,17 +402,33 @@ public class GraphGui {
                     topologicalString.setFont(new Font("Arial", Font.BOLD, 24));
                     topologicalString.setLineWrap(true);
                     topologicalString.setEditable(false);
-                    containerPanel.add(topologicalString);
+                    algorithmResultContainer.add(topologicalString);
+                    break;
+                case "Dijkstra":
+                    Graph<String, MyEdge> dijkstraGraph = convertToJUNGGraph((DirectedStringGraph) directedStringGraph.dijkstra(oneUserInputFstField.getText()));
+                    VisualizationViewer<String, MyEdge> vv = createVisualizationViewer(dijkstraGraph);
+                    GraphZoomScrollPane dijkstraScrollPane = new GraphZoomScrollPane(vv);
+                    algorithmResultContainer.add(dijkstraScrollPane);
                     break;
                 default:
                     throw new Exception("Algorithm/command not implemented!");
             }
         } catch (Exception error) {
             String errorString = error.toString();
-            containerPanel.add(new JLabel(errorString, SwingConstants.CENTER));
+            algorithmResultContainer.add(new JLabel(errorString, SwingConstants.CENTER));
         }
-        graphVisualContainer.revalidate();
-        graphVisualContainer.repaint();
+        algorithmResultContainer.revalidate();
+        algorithmResultContainer.repaint();
+    }
+
+    // Sets up graph algorithm user input cards
+    private void setUpUserInputCards() {
+        emptyUserInputContainer = new JPanel();
+        oneUserInputsContainer = new JPanel();
+        oneUserInputFstField = new JTextField(30);
+        oneUserInputsContainer.add(oneUserInputFstField);
+        algorithmUserInputCards.add(emptyUserInputContainer, "NoInput");
+        algorithmUserInputCards.add(oneUserInputsContainer, "SingleInput");
     }
 
     // Container class for edge connection + weight
