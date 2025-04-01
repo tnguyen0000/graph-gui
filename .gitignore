@@ -2,10 +2,9 @@
 .gradle
 
 # Ignore Gradle build output directory
-app/build/*
+app/build
 
 .vscode
 
 testcode.txt
 app/bin
-!app/build/libs
