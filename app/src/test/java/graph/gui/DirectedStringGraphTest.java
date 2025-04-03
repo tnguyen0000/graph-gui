@@ -1,7 +1,8 @@
 package graph.gui;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
@@ -120,5 +121,20 @@ public class DirectedStringGraphTest {
         assertThrows(IllegalArgumentException.class, () -> {
             dijkstraGraph.getEdgeWeight("3", "4");
         });
+    }
+
+    @Test
+    @DisplayName("Simple Ford-Fulkerson where bottleneck edge is final edge")
+    public void fordFulkersonSimple() {
+        // Graph = 1->2->3
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"1","2"};
+        String[] sndEdge = {"2","3"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge));
+        weights.addAll(Arrays.asList(100,2));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        int result = graph.fordFulkersonMaxFlow("1", "3");
+        assertEquals(2, result);
     }
 }

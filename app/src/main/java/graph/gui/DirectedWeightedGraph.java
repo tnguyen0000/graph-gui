@@ -1,5 +1,6 @@
 package graph.gui;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -224,5 +225,75 @@ abstract class DirectedWeightedGraph<T extends Object> implements GraphMethods<T
             }
         }
         return newAdjList;
+    }
+
+    @Override
+    public int fordFulkersonMaxFlow(T source, T sink) {
+        if (!nodeExists(source) || !nodeExists(sink)) {
+            throw new IllegalArgumentException("'Source' AND 'Sink' node must exist");
+        }
+        if (source.equals(sink)) {
+            throw new IllegalArgumentException("Source and Sink cannot be the same!");
+        }
+        int[][] matrix = new int[vertexNum][vertexNum];
+        for (int v = 0; v < vertexNum; v++) {
+            for (MyEdge edge: adjList.get(v)) {
+                int neighId = edge.getNeigh();
+                int weight = edge.getWeight();
+                matrix[v][neighId] = weight;
+            }
+        }
+
+        int sourceId = vertexMap.get(source);
+        int sinkId = vertexMap.get(sink);
+        int[] parent = new int[vertexNum];
+        int maxFlow = 0;
+        while (fordFulkersonBFS(matrix, sourceId, sinkId, parent)) {
+            int currFlow = Integer.MAX_VALUE;
+            int search = sinkId;
+            while(search != sourceId) {
+                int prev = parent[search];
+                currFlow = Math.min(currFlow, matrix[prev][search]);
+                search = parent[search];
+            }
+
+            search = sinkId;
+            while(search != sourceId) {
+                int prev = parent[search];
+                matrix[prev][search] -= currFlow;
+                matrix[search][prev] += currFlow;
+                search = parent[search];
+            }
+            maxFlow += currFlow;
+        }
+        return maxFlow;
+    }
+
+    /**
+     * Breadth first search to find if augmenting path exists for Ford-Fulkerson
+     * @param matrix matrix form of graph
+     * @param source source vertex id
+     * @param sink sink vertex id
+     * @param parent array that holds vertex id used to access index-id vertex
+     * @return boolean if path exists from source to sink
+     */
+    private boolean fordFulkersonBFS(int[][] matrix, int source, int sink, int[] parent) {
+        boolean[] vis = new boolean[vertexNum];
+        Queue<Integer> q = new ArrayDeque<>();
+        q.add(source);
+        vis[source] = true;
+        parent[source] = -1;
+        while (!q.isEmpty()) {
+            int popId = q.poll();
+            for (int neighId = 0; neighId < vertexNum; neighId++) {
+                if (!vis[neighId] && matrix[popId][neighId] > 0) {
+                    q.add(neighId);
+                    parent[neighId] = popId;
+                    vis[neighId] = true;
+                }
+            }
+        }
+
+        return vis[sink];
     }
 }

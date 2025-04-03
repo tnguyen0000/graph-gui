@@ -15,8 +15,10 @@ public interface GraphMethods<T extends Object> {
      * Throws exception if source node doesn't exist
     */
     public DirectedWeightedGraph<T> dijkstra(T source);
-    // public Integer edmondsKarp(T source, T sink);
-    // public void MST();
-    // public void bellmanFord(T source);
-    
+    /* Max flow using Ford-Fulkerson algorithm
+     * 
+     * Returns max flow integer of graph.
+     * Throws exception if source node doesn't exist
+    */
+    public int fordFulkersonMaxFlow(T source, T sink);    
 }
