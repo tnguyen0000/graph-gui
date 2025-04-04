@@ -48,10 +48,10 @@ public class GraphGui {
     private List<List<EdgeJTextField>> edgeJTextFields; // edgeTextFields[v] = adjacency list of node v which shows neighbour connection + weight
     private DirectedStringGraph directedStringGraph;
     ButtonGroup radioAlgorithmGroup;
-    private JPanel algorithmResultContainer, emptyUserInputContainer, oneUserInputsContainer; // twoUserInputContainer;
+    private JPanel algorithmResultContainer, emptyUserInputContainer, oneUserInputsContainer, twoUserInputsContainer;
     private JPanel algorithmUserInputCards = new JPanel(new CardLayout());
-    private JTextField oneUserInputFstField;
-    private static final String[] GRAPH_ALGOS = {"Topological", "Dijkstra"};
+    private JTextField userInputFstField, userInputSndField;
+    private static final String[] GRAPH_ALGOS = {"Topological", "Dijkstra", "Max Flow"};
 
     // Initialise GraphGui
     public GraphGui() {
@@ -321,6 +321,12 @@ public class GraphGui {
                 return arg0;
             }
         });
+        vv.getRenderContext().setVertexFontTransformer(new Transformer<String,Font>() {
+            @Override
+            public Font transform(String arg0) {
+                return new Font("Arial", Font.BOLD, 14);
+            }
+        });
         vv.getRenderContext().setEdgeLabelTransformer(new Transformer<MyEdge, String>() {
             @Override
             public String transform(MyEdge arg0) {
@@ -357,11 +363,24 @@ public class GraphGui {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             inputLayout.show(algorithmUserInputCards, "SingleInput");
+                            String[] fieldNames = {"Source"};
+                            addUserInputFields(1, fieldNames);
                             algorithmUserInputCards.repaint();
                             algorithmUserInputCards.revalidate();
                         }
                     });
                     break;
+                case "Max Flow":
+                    graphAlgoRadioBoxes[i].addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            inputLayout.show(algorithmUserInputCards, "TwoInputs");
+                            String[] fieldNames = {"Source", "Sink"};
+                            addUserInputFields(2, fieldNames);
+                            algorithmUserInputCards.repaint();
+                            algorithmUserInputCards.revalidate();
+                        }
+                    });
                 default:
                     graphAlgoRadioBoxes[i].addActionListener(new ActionListener() {
                         @Override
@@ -405,10 +424,18 @@ public class GraphGui {
                     algorithmResultContainer.add(topologicalString);
                     break;
                 case "Dijkstra":
-                    Graph<String, MyEdge> dijkstraGraph = convertToJUNGGraph((DirectedStringGraph) directedStringGraph.dijkstra(oneUserInputFstField.getText()));
+                    Graph<String, MyEdge> dijkstraGraph = convertToJUNGGraph((DirectedStringGraph) directedStringGraph.dijkstra(userInputFstField.getText()));
                     VisualizationViewer<String, MyEdge> vv = createVisualizationViewer(dijkstraGraph);
                     GraphZoomScrollPane dijkstraScrollPane = new GraphZoomScrollPane(vv);
                     algorithmResultContainer.add(dijkstraScrollPane);
+                    break;
+                case "Max Flow":
+                    Integer maxFlow = directedStringGraph.fordFulkersonMaxFlow(userInputFstField.getText(), userInputSndField.getText());
+                    JTextArea maxFlowString = new JTextArea(maxFlow.toString());
+                    maxFlowString.setFont(new Font("Arial", Font.BOLD, 24));
+                    maxFlowString.setLineWrap(true);
+                    maxFlowString.setEditable(false);
+                    algorithmResultContainer.add(maxFlowString);
                     break;
                 default:
                     throw new Exception("Algorithm/command not implemented!");
@@ -425,10 +452,43 @@ public class GraphGui {
     private void setUpUserInputCards() {
         emptyUserInputContainer = new JPanel();
         oneUserInputsContainer = new JPanel();
-        oneUserInputFstField = new JTextField(30);
-        oneUserInputsContainer.add(oneUserInputFstField);
+        userInputFstField = new JTextField(30);
+        twoUserInputsContainer = new JPanel();
+        userInputSndField = new JTextField(30);
         algorithmUserInputCards.add(emptyUserInputContainer, "NoInput");
         algorithmUserInputCards.add(oneUserInputsContainer, "SingleInput");
+        algorithmUserInputCards.add(twoUserInputsContainer, "TwoInputs");
+    }
+
+    // Adds user input and their respective labels to card
+    private void addUserInputFields(int fieldNum, String[] fieldNames) {
+        if (fieldNum != fieldNames.length) {
+            System.err.println("Lengths for user inputs do not match!");
+            return;
+        }
+        // Note: userInputXField could be converted to array of JTextFields to reduce repetition
+        // but in practice not many graph algorithms require more than 1-2 different inputs
+        if (fieldNum == 1) {
+            JPanel fieldContainer1 = new JPanel();
+            JLabel label1 = new JLabel(fieldNames[0]);
+            fieldContainer1.add(label1);
+            fieldContainer1.add(userInputFstField);
+            oneUserInputsContainer.add(fieldContainer1);
+        } else if (fieldNum == 2) {
+            JPanel fieldContainer1 = new JPanel();
+            JPanel fieldContainer2 = new JPanel();
+            JLabel label1 = new JLabel(fieldNames[0]);
+            JLabel label2 = new JLabel(fieldNames[1]);
+            fieldContainer1.add(label1);
+            fieldContainer1.add(userInputFstField);
+            fieldContainer2.add(label2);
+            fieldContainer2.add(userInputSndField);
+            twoUserInputsContainer.add(fieldContainer1);
+            twoUserInputsContainer.add(fieldContainer2);
+        } else {
+            System.err.println(fieldNum + " amount of field/s not implemented!");
+            return;
+        }
     }
 
     // Container class for edge connection + weight

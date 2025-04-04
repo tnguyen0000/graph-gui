@@ -125,7 +125,7 @@ public class DirectedStringGraphTest {
 
     @Test
     @DisplayName("Simple Ford-Fulkerson where bottleneck edge is final edge")
-    public void fordFulkersonSimple() {
+    public void fordFulkersonSimpleOnePath() {
         // Graph = 1->2->3
         List<String[]> edges = new ArrayList<>();
         List<Integer> weights = new ArrayList<>();
@@ -136,5 +136,45 @@ public class DirectedStringGraphTest {
         DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
         int result = graph.fordFulkersonMaxFlow("1", "3");
         assertEquals(2, result);
+    }
+
+    @Test
+    @DisplayName("Simple Ford-Fulkerson with multiple edges")
+    public void fordFulkersonSimpleMultiplePath() {
+        // Graph = 1->{2,3}->4
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"1","2"};
+        String[] sndEdge = {"1","3"};
+        String[] thrdEdge = {"2","4"};
+        String[] frthEdge = {"3","4"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge, thrdEdge, frthEdge));
+        weights.addAll(Arrays.asList(2,10,30,10));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        int result = graph.fordFulkersonMaxFlow("1", "4");
+        assertEquals(12, result);
+    }
+
+    @Test
+    @DisplayName("Simple Ford-Fulkerson with linking edge")
+    public void fordFulkersonMultiplePath() {
+        // Graph = 1->{2,3}->4
+        /*        __->[2]__
+         *     2/     ^    \30
+         * [1]-|     5|    |->[4]
+         *    14\__->[3]__/10
+         */
+        List<String[]> edges = new ArrayList<>();
+        List<Integer> weights = new ArrayList<>();
+        String[] fstEdge = {"1","2"};
+        String[] sndEdge = {"1","3"};
+        String[] thrdEdge = {"2","4"};
+        String[] frthEdge = {"3","4"};
+        String[] linkEdge = {"3","2"};
+        edges.addAll(Arrays.asList(fstEdge, sndEdge, thrdEdge, frthEdge, linkEdge));
+        weights.addAll(Arrays.asList(2,14,30,10,5));
+        DirectedStringGraph graph = new DirectedStringGraph(edges, weights);
+        int result = graph.fordFulkersonMaxFlow("1", "4");
+        assertEquals(16, result);
     }
 }
