@@ -6,4 +6,4 @@ GUI was made in Java through the [Swing library](https://docs.oracle.com/javase/
 #### Currently, there are only three algorithms implemented:
 1. Kahn (Topological sort),
 2. Dijkstra (Shortest path from given vertex),
-3. Floyd-Fulkerson (Max flow given source and sink vertices).
+3. Ford-Fulkerson (Max flow given source and sink vertices).
